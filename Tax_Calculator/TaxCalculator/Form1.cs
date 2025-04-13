@@ -190,5 +190,13 @@ public partial class Form1 : Form
         }
     }
 
+    public void ClearButton_Click(object s, EventArgs e)
+    {
+        vatValueSADText.Text = "";
+        numberOfPiecesText.Text = "";
+        productName.Text = "";
+        resultsBox.Text = "";
+        productsListBox.Items.Clear();
+    }
 
 }

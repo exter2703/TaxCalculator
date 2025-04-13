@@ -16,6 +16,7 @@ partial class Form1
     private System.Windows.Forms.Label productsListLabel;
     private System.Windows.Forms.Button addProductButton;
     private System.Windows.Forms.Button deleteProductButton;
+    private System.Windows.Forms.Button clearButton;
     private System.Windows.Forms.Button calculateButton;
     private System.Windows.Forms.RichTextBox resultsBox;
     private System.Windows.Forms.Label resultsLabel;
@@ -53,6 +54,8 @@ partial class Form1
             this.addProductButton = new System.Windows.Forms.Button();
             this.productsListBox = new System.Windows.Forms.ListBox();
             this.deleteProductButton = new System.Windows.Forms.Button();
+            
+            this.clearButton = new System.Windows.Forms.Button();
             
             //Oblicz
             this.calculateButton = new System.Windows.Forms.Button();
@@ -127,7 +130,7 @@ partial class Form1
             
             //Calculate button
             this.calculateButton.Text = "Oblicz";
-            this.calculateButton.Location = new System.Drawing.Point(350, 170);
+            this.calculateButton.Location = new System.Drawing.Point(350, 150);
             this.calculateButton.Size = new System.Drawing.Size(75, 30);
             this.calculateButton.Font = new Font("Segoe UI", 10, FontStyle.Bold);
             this.calculateButton.Click += new System.EventHandler(this.CalculateButton_Click);
@@ -135,6 +138,17 @@ partial class Form1
             this.calculateButton.FlatAppearance.BorderSize = 2;
             this.calculateButton.FlatStyle = FlatStyle.Flat;
             this.calculateButton.FlatAppearance.BorderColor = Color.DarkOliveGreen;
+            
+            //Clear button
+            this.clearButton.Text = "Wyczyść";
+            this.clearButton.Location = new System.Drawing.Point(350, 185);
+            this.clearButton.Size = new System.Drawing.Size(75, 30);
+            this.clearButton.Font = new Font("Segoe UI", 10, FontStyle.Regular);
+            this.clearButton.Click += new System.EventHandler(this.ClearButton_Click);
+            this.clearButton.BackColor = Color.LightBlue;
+            this.clearButton.FlatAppearance.BorderSize = 2;
+            this.clearButton.FlatStyle = FlatStyle.Flat;
+            this.clearButton.FlatAppearance.BorderColor = Color.PowderBlue;
             
             //Results box
             this.resultsBox.Location = new System.Drawing.Point(20, 270);
@@ -169,6 +183,7 @@ partial class Form1
             this.Controls.Add(this.productsListLabel);
             this.Controls.Add(this.resultsLabel);
             this.Controls.Add(this.deleteProductButton);
+            this.Controls.Add(this.clearButton);
         #endregion
         
         
