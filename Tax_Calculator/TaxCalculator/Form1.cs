@@ -2,86 +2,111 @@ namespace TaxCalculator;
 
 public partial class Form1 : Form
 {
-    private List<Produkt> products;
+    private List<Produkt> _products;
     
     public Form1()
     {
         InitializeComponent();
-        products = new List<Produkt>();
+        _products = new List<Produkt>();
     }
 
-    public void CalculateButton_Click(Object s, EventArgs e)
+    private void CalculateButton_Click(object sender, EventArgs e)
     {
         resultsBox.Clear();
-        
-        if (!double.TryParse(vatValueSADText.Text.Trim(), out double vatTotal) || vatTotal <= 0)
+
+        if (!double.TryParse(vatValueSADText.Text.Trim(), out var vatTotal) || vatTotal <= 0)
         {
             MessageBox.Show("Wprowadź poprawną kwotę VAT (> 0).");
             return;
         }
 
-        if (products.Count == 0)
+        if (_products.Count == 0)
         {
             MessageBox.Show("Dodaj przynajmniej jeden produkt.");
             return;
         }
 
-        int totalPieces = products.Sum(p => p.Pieces);
         
-        const double VAT_RATE = 0.23;
+        int totalPieces = _products.Sum(p => p.Pieces);
+
         
-        int piecesSum = 0;
-        foreach (var product in products)
-        {
-            piecesSum += product.Pieces;
-        }
-        
-        foreach (var product in products)
-        {
-            double proportion = (double)product.Pieces / piecesSum;
-            product.Tax = Math.Round(int.Parse(vatValueSADText.Text) * proportion, 2);
-        }
-        
-        double nettoSum = 0;
+        double vatSoFar = 0;
         double vatSum = 0;
-        
-        Console.WriteLine("Wyniki: ");
-        
-        foreach (var product in products)
+
+        for (int i = 0; i < _products.Count; i++)
         {
-            double nettoPrice = product.Tax / VAT_RATE;
-            double onePiecePrice = nettoPrice / product.Pieces;
-        
-            double mainPrice = Math.Floor(onePiecePrice * 100) / 100;
-        
-            int mainPieces = product.Pieces - 1;
-        
-            double rest = nettoPrice - (mainPieces * mainPrice);
-            double priceLastPiece = Math.Round(rest, 2);
-            
-            double sumCheck = mainPieces * mainPrice + priceLastPiece;
-            nettoSum += sumCheck;
-            vatSum += product.Tax;
-            
-            
-            resultsBox.AppendText($"Produkt: {product.Name}\n");
-            resultsBox.AppendText($"Sztuki: {product.Pieces} sztuk\n");
-            resultsBox.AppendText($"VAT: {product.Tax} PLN\n");
-            resultsBox.AppendText($"Netto overall: {nettoPrice:F2} PLN\n");
-            resultsBox.AppendText($"Cena jednostkowa dokładna: {onePiecePrice:F6} PLN\n");
-            resultsBox.AppendText($"Cena główna: {mainPrice:F2} PLN\n");
-            resultsBox.AppendText(" - Podział w PZ:\n");
-            resultsBox.AppendText($"  - {mainPieces} sztuk po {mainPrice:F2} PLN\n");
-            resultsBox.AppendText($"  - 1 sztuka po {priceLastPiece:F2} PLN\n");
-            resultsBox.AppendText($"Suma: {sumCheck:F2} PLN\n");
-            resultsBox.AppendText("\n");
+            var proportion = (double)_products[i].Pieces / totalPieces;
+
+            if (i < _products.Count - 1)
+            {
+                _products[i].Tax = Math.Round(vatTotal * proportion, 2);
+                vatSoFar += _products[i].Tax;
+                vatSum += vatSoFar;
+            }
+            else
+            {
+                _products[i].Tax = Math.Round(vatTotal - vatSoFar, 2);
+            }
         }
-        resultsBox.AppendText("\n======================================================\n");
-        resultsBox.AppendText($"Łączna suma NETTO: {nettoSum:F2} PLN\n");
-        resultsBox.AppendText($"Łączna suma VAT: {vatSum:F2} PLN\n");
+        
+        double nettoSoFar = 0;
+
+        for (int i = 0; i < _products.Count; i++)
+        {
+            var product = _products[i];
+            double netto = product.Tax / 0.23;
+            double unitExact = netto / product.Pieces;
+
+            double mainPrice = Math.Floor(unitExact * 100) / 100;
+            double fullMainValue = mainPrice * product.Pieces;
+
+            double lastPiecePrice = mainPrice;
+            int piecesWithMainPrice = product.Pieces;
+
+            
+            if (i == _products.Count - 1)
+            {
+                const double vatRate = 0.23;
+                double nettoExpected = Math.Ceiling((vatTotal / vatRate) * 100) / 100;
+
+                double correction = Math.Round(nettoExpected - (nettoSoFar + fullMainValue), 2);
+
+                if (Math.Abs(correction) > 0.005)
+                {
+                    lastPiecePrice = mainPrice + correction;
+                    piecesWithMainPrice = product.Pieces - 1;
+                }
+            }
+
+            double sumFinal = piecesWithMainPrice * mainPrice + (product.Pieces - piecesWithMainPrice) * lastPiecePrice;
+            nettoSoFar += sumFinal;
+            
+            
+            resultsBox.AppendText($"{product.Name}\n");
+            resultsBox.AppendText($"  Sztuk: {product.Pieces}\n");
+            resultsBox.AppendText($"  VAT: {product.Tax:F2} PLN\n");
+            resultsBox.AppendText($"  Netto: {netto:F2} PLN\n");
+            resultsBox.AppendText($"  Cena jednostkowa dokładna: {unitExact:F6} PLN\n");
+            resultsBox.AppendText($"  Główna cena: {mainPrice:F2} PLN\n");
+            resultsBox.AppendText($"  Podział:\n");
+            resultsBox.AppendText($"    {piecesWithMainPrice} szt. po {mainPrice:F2} PLN\n");
+
+            if (product.Pieces != piecesWithMainPrice)
+            {
+                resultsBox.AppendText($"    1 szt. po {lastPiecePrice:F2} PLN\n");
+            }
+
+            resultsBox.AppendText($"  Suma netto: {sumFinal:F2} PLN\n\n");
+        }
+        double vatFinal = nettoSoFar * 0.23;
+
+        resultsBox.AppendText("====================================\n");
+        resultsBox.AppendText($"Łączna suma NETTO: {nettoSoFar:F2} PLN\n");
+        resultsBox.AppendText($"Łączna suma VAT: {vatFinal:F4} PLN\n");
     }
 
-    public void AddProductButton_Click(object s, EventArgs e)
+
+    private void AddProductButton_Click(object s, EventArgs e)
     {
         string productNameInput = productName.Text.Trim();
 
@@ -91,12 +116,79 @@ public partial class Form1 : Form
             return;
         }
 
-        products.Add(new Produkt { Name = productNameInput, Pieces = pieces });
+        _products.Add(new Produkt { Name = productNameInput, Pieces = pieces });
 
         productsListBox.Items.Add($"{productNameInput} - {pieces} sztuk");
 
         numberOfPiecesText.Clear();
         productName.Clear();
     }
+
+    public void DeleteProductButton_Click(object s, EventArgs e)
+    {
+        int selectedProduct = productsListBox.SelectedIndex;
+        if (selectedProduct == -1)
+        {
+            MessageBox.Show("Wybierz produkt z listy, który chcesz usunąć.");
+            return;
+        }
+        _products.RemoveAt(selectedProduct);
+        productsListBox.Items.RemoveAt(selectedProduct);
+    }
+    
+    private void ProductName_Enter(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(productName.Text) && productName.Text == "Wpisz nazwę...")
+        {
+            productName.Text = "";
+            productName.ForeColor = Color.Black;
+        }
+    }
+
+    private void ProductName_Leave(object sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(productName.Text))
+        {
+            productName.Text = "Wpisz nazwę...";
+            productName.ForeColor = Color.Gray;
+        }
+    }
+    
+    private void Pieces_Enter(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(numberOfPiecesText.Text) && numberOfPiecesText.Text == "Wpisz liczbę...")
+        {
+            numberOfPiecesText.Text = "";
+            numberOfPiecesText.ForeColor = Color.Black;
+        }
+    }
+
+    private void Pieces_Leave(object sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(numberOfPiecesText.Text))
+        {
+            numberOfPiecesText.Text = "Wpisz liczbę...";
+            numberOfPiecesText.ForeColor = Color.Gray;
+        }
+    }
+    
+    private void VAT_Enter(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(vatValueSADText.Text) && vatValueSADText.Text == "B00 Kwota VAT...")
+        {
+            vatValueSADText.Text = "";
+            vatValueSADText.ForeColor = Color.Black;
+        }
+    }
+
+    private void VAT_Leave(object sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(vatValueSADText.Text))
+        {
+            vatValueSADText.Text = "B00 Kwota VAT...";
+            vatValueSADText.ForeColor = Color.Gray;
+        }
+    }
+
 
 }
