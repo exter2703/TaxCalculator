@@ -116,10 +116,19 @@ public partial class Form1 : Form
             return;
         }
 
+        foreach (var product in _products.ToList())
+        {
+            if (_products.Exists(product => product.Name.ToLower() == productNameInput.ToLower()))
+            {
+                MessageBox.Show($"Produkt '{product.Name.ToLower()}' już istnieje!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                productName.Select();
+                return;
+            }
+        }
         _products.Add(new Produkt { Name = productNameInput, Pieces = pieces });
 
         productsListBox.Items.Add($"{productNameInput} - {pieces} sztuk");
-
+        
         numberOfPiecesText.Clear();
         productName.Clear();
     }
@@ -174,7 +183,7 @@ public partial class Form1 : Form
     
     private void VAT_Enter(object sender, EventArgs e)
     {
-        if (!string.IsNullOrWhiteSpace(vatValueSADText.Text) && vatValueSADText.Text == "B00 Kwota VAT...")
+        if (!string.IsNullOrWhiteSpace(vatValueSADText.Text) && vatValueSADText.Text == "Kwota VAT...")
         {
             vatValueSADText.Text = "";
             vatValueSADText.ForeColor = Color.Black;
@@ -185,7 +194,7 @@ public partial class Form1 : Form
     {
         if (string.IsNullOrWhiteSpace(vatValueSADText.Text))
         {
-            vatValueSADText.Text = "B00 Kwota VAT...";
+            vatValueSADText.Text = "Kwota VAT...";
             vatValueSADText.ForeColor = Color.Gray;
         }
     }
@@ -196,6 +205,13 @@ public partial class Form1 : Form
         numberOfPiecesText.Text = "";
         productName.Text = "";
         resultsBox.Text = "";
+        if (_products.Count > 0)
+        {
+            foreach (Produkt product in _products.ToList())
+            {
+                _products.Remove(product);
+            }
+        }
         productsListBox.Items.Clear();
     }
 

@@ -69,11 +69,11 @@ partial class Form1
         #region Customize
             //VAT
             this.vatValueSADLabel.Location = new System.Drawing.Point(20, 20);
-            this.vatValueSADLabel.Size = new System.Drawing.Size(70, 23);
-            this.vatValueSADLabel.Text = "VAT z SADu:";
+            this.vatValueSADLabel.Size = new System.Drawing.Size(80, 23);
+            this.vatValueSADLabel.Text = "VAT (FV/SAD):";
             this.vatValueSADText.Location = new System.Drawing.Point(100, 20);
             this.vatValueSADText.Size = new System.Drawing.Size(100, 20);
-            this.vatValueSADText.Text = "B00 Kwota VAT...";
+            this.vatValueSADText.Text = "Kwota VAT...";
             this.vatValueSADText.ForeColor = Color.Gray;
             this.vatValueSADText.GotFocus += VAT_Enter;
             this.vatValueSADText.LostFocus += VAT_Leave;
@@ -190,7 +190,8 @@ partial class Form1
         this.components = new System.ComponentModel.Container();
         this.BackColor = Color.DarkGray;
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(800, 660);
+        this.MinimumSize = new System.Drawing.Size(600, 700);
+        this.ClientSize = new System.Drawing.Size(580, 660);
         this.Text = "Kalkulator PZ";
         this.Icon = new Icon(Path.Combine(Application.StartupPath, "favicon.ico"));
     }
